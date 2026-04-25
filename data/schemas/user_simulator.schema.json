@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/user_simulator.schema.json",
+  "title": "User Simulator Scenario Dataset",
+  "description": "面向复杂外呼任务评测的用户模拟器场景数据集。",
+  "type": "object",
+  "required": [
+    "dataset_name",
+    "source_file",
+    "schema_ref",
+    "scenario_count",
+    "scenarios"
+  ],
+  "properties": {
+    "dataset_name": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "schema_ref": {
+      "type": "string"
+    },
+    "scenario_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    }
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "required": [
+        "scenario_id",
+        "instruction_id",
+        "domain",
+        "profile_id",
+        "persona",
+        "goal",
+        "style",
+        "trigger_scenarios",
+        "must_cover",
+        "initial_user_utterance",
+        "initial_state_id",
+        "max_turns",
+        "states",
+        "instruction_summary"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string"
+        },
+        "instruction_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "persona": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "style": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trigger_scenarios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "must_cover": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initial_user_utterance": {
+          "type": "string"
+        },
+        "initial_state_id": {
+          "type": "string"
+        },
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/state"
+          }
+        },
+        "instruction_summary": {
+          "type": "object",
+          "required": [
+            "task",
+            "opening_line",
+            "required_information"
+          ],
+          "properties": {
+            "task": {
+              "type": "string"
+            },
+            "opening_line": {
+              "type": "string"
+            },
+            "required_information": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "state_id",
+        "intent",
+        "default_response",
+        "expected_agent_signals",
+        "fallback_response",
+        "transition_to",
+        "terminal"
+      ],
+      "properties": {
+        "state_id": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "default_response": {
+          "type": "string"
+        },
+        "expected_agent_signals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallback_response": {
+          "type": "string"
+        },
+        "transition_to": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terminal": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

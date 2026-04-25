@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/dialog_instruction.schema.json",
+  "title": "Dialog Instruction Dataset",
+  "description": "标准化后的复杂外呼任务对话指令数据集。",
+  "type": "object",
+  "required": [
+    "dataset_name",
+    "source_file",
+    "schema_ref",
+    "example_count",
+    "examples"
+  ],
+  "properties": {
+    "dataset_name": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "schema_ref": {
+      "type": "string"
+    },
+    "example_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/instruction_example"
+      }
+    }
+  },
+  "$defs": {
+    "instruction_example": {
+      "type": "object",
+      "required": [
+        "instruction_id",
+        "source",
+        "role",
+        "task",
+        "opening_line",
+        "call_flow",
+        "knowledge_points",
+        "constraints",
+        "raw_markdown"
+      ],
+      "properties": {
+        "instruction_id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "file_name",
+            "sheet_name",
+            "row_id"
+          ],
+          "properties": {
+            "file_name": {
+              "type": "string"
+            },
+            "sheet_name": {
+              "type": "string"
+            },
+            "row_id": {
+              "type": [
+                "string",
+                "integer",
+                "number"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "role": {
+          "type": "string"
+        },
+        "task": {
+          "type": "string"
+        },
+        "opening_line": {
+          "type": "string"
+        },
+        "call_flow": {
+          "type": "object",
+          "required": [
+            "steps",
+            "raw_text"
+          ],
+          "properties": {
+            "raw_text": {
+              "type": "string"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/step"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "knowledge_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "required": [
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "max_chars_per_turn": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "suggested_char_range": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "forbidden_expressions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "driving_rule": {
+              "type": "string"
+            },
+            "out_of_scope_reply": {
+              "type": "string"
+            },
+            "has_end_call_condition": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "raw_markdown": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "step_id",
+        "title",
+        "instruction",
+        "bullet_points"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string"
+        },
+        "bullet_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "substeps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/substep"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "substep": {
+      "type": "object",
+      "required": [
+        "substep_id",
+        "title",
+        "instruction",
+        "bullet_points"
+      ],
+      "properties": {
+        "substep_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string"
+        },
+        "bullet_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

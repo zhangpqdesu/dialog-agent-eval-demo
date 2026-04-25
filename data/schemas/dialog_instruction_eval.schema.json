@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/dialog_instruction_eval.schema.json",
+  "title": "Dialog Instruction Evaluation Dataset",
+  "description": "面向用户模拟器和自动评分器的复杂外呼任务评测数据集。",
+  "type": "object",
+  "required": [
+    "dataset_name",
+    "source_file",
+    "schema_ref",
+    "example_count",
+    "examples"
+  ],
+  "properties": {
+    "dataset_name": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "schema_ref": {
+      "type": "string"
+    },
+    "example_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/eval_instruction"
+      }
+    }
+  },
+  "$defs": {
+    "eval_instruction": {
+      "type": "object",
+      "required": [
+        "instruction_id",
+        "source",
+        "domain",
+        "instruction_core",
+        "success_criteria",
+        "failure_conditions",
+        "user_simulator_profiles",
+        "raw_markdown"
+      ],
+      "properties": {
+        "instruction_id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "file_name",
+            "sheet_name",
+            "row_id"
+          ],
+          "properties": {
+            "file_name": {
+              "type": "string"
+            },
+            "sheet_name": {
+              "type": "string"
+            },
+            "row_id": {
+              "type": [
+                "string",
+                "integer",
+                "number"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "domain": {
+          "type": "string"
+        },
+        "instruction_core": {
+          "type": "object",
+          "required": [
+            "role",
+            "task",
+            "opening_line",
+            "required_information",
+            "call_flow",
+            "knowledge_points",
+            "constraints"
+          ],
+          "properties": {
+            "role": {
+              "type": "string"
+            },
+            "task": {
+              "type": "string"
+            },
+            "opening_line": {
+              "type": "string"
+            },
+            "required_information": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "call_flow": {
+              "$ref": "#/$defs/call_flow"
+            },
+            "knowledge_points": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "constraints": {
+              "$ref": "#/$defs/constraints"
+            }
+          },
+          "additionalProperties": false
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/success_criterion"
+          }
+        },
+        "failure_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failure_condition"
+          }
+        },
+        "user_simulator_profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/user_simulator_profile"
+          }
+        },
+        "raw_markdown": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_flow": {
+      "type": "object",
+      "required": [
+        "steps",
+        "raw_text"
+      ],
+      "properties": {
+        "raw_text": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "constraints": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "max_chars_per_turn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "suggested_char_range": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "forbidden_expressions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "driving_rule": {
+          "type": "string"
+        },
+        "out_of_scope_reply": {
+          "type": "string"
+        },
+        "has_end_call_condition": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "success_criterion": {
+      "type": "object",
+      "required": [
+        "criterion_id",
+        "category",
+        "description",
+        "priority",
+        "evidence_type",
+        "source_fields"
+      ],
+      "properties": {
+        "criterion_id": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string"
+        },
+        "evidence_type": {
+          "type": "string"
+        },
+        "source_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "failure_condition": {
+      "type": "object",
+      "required": [
+        "condition_id",
+        "severity",
+        "description",
+        "trigger_type",
+        "source_fields"
+      ],
+      "properties": {
+        "condition_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "trigger_type": {
+          "type": "string"
+        },
+        "source_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "user_simulator_profile": {
+      "type": "object",
+      "required": [
+        "profile_id",
+        "persona",
+        "goal",
+        "style",
+        "trigger_scenarios",
+        "must_cover",
+        "domain"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string"
+        },
+        "persona": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "style": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trigger_scenarios": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "must_cover": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "step_id",
+        "title",
+        "instruction",
+        "bullet_points"
+      ],
+      "properties": {
+        "step_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string"
+        },
+        "bullet_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "substeps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/substep"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "substep": {
+      "type": "object",
+      "required": [
+        "substep_id",
+        "title",
+        "instruction",
+        "bullet_points"
+      ],
+      "properties": {
+        "substep_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string"
+        },
+        "bullet_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

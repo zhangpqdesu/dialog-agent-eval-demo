@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复杂外呼任务评测系统 Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">AI Agent Competition Demo</p>
+          <h1>复杂指令下的多轮对话自动评测系统</h1>
+          <p class="hero-text">
+            把任务指令结构化，把用户画像场景化，把执行结果量化。
+            这个页面同时展示系统方案、评测流程，以及 14 个用户场景下的当前实验结果。
+          </p>
+          <div class="hero-badges">
+            <span>Agent: kimi-k2-turbo-preview</span>
+            <span>User Simulator: kimi-k2-turbo-preview</span>
+            <span>Judge: 规则评分</span>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="metric-card">
+            <span class="metric-label">批量场景数</span>
+            <strong id="metricScenarioCount">14</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">平均分</span>
+            <strong id="metricAvgScore">49.56</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">最高分</span>
+            <strong id="metricMaxScore">100</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">最低分</span>
+            <strong id="metricMinScore">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="section">
+          <div class="section-head">
+            <p class="section-kicker">How It Works</p>
+            <h2>我是怎么做的</h2>
+          </div>
+          <div class="timeline">
+            <article class="timeline-card">
+              <span class="timeline-index">01</span>
+              <h3>指令结构化</h3>
+              <p>
+                从 Excel 指令中统一抽取
+                <code>role</code>、<code>task</code>、<code>opening_line</code>、<code>call_flow</code>、
+                <code>knowledge_points</code>、<code>constraints</code>。
+              </p>
+            </article>
+            <article class="timeline-card">
+              <span class="timeline-index">02</span>
+              <h3>评测协议生成</h3>
+              <p>
+                自动补出 <code>success_criteria</code>、<code>failure_conditions</code>、
+                <code>user_simulator_profiles</code>，把自然语言任务转成可测协议。
+              </p>
+            </article>
+            <article class="timeline-card">
+              <span class="timeline-index">03</span>
+              <h3>用户模拟器</h3>
+              <p>
+                生成 14 个用户场景，覆盖正常、沉默、忙碌、质疑、越界提问、乱问、拒绝执行、开车中等类型。
+              </p>
+            </article>
+            <article class="timeline-card">
+              <span class="timeline-index">04</span>
+              <h3>自动评测</h3>
+              <p>
+                Agent 和 User Simulator 走 Kimi API，Judge 用规则打分，输出每个场景的对话和评分报告。
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section grid-section">
+          <div class="section-head">
+            <p class="section-kicker">Architecture</p>
+            <h2>系统结构</h2>
+          </div>
+          <div class="architecture-grid">
+            <article class="arch-card">
+              <h3>输入层</h3>
+              <p>Excel 指令样例</p>
+              <p>任务话术模板</p>
+              <p>流程与约束规则</p>
+            </article>
+            <article class="arch-card">
+              <h3>中间层</h3>
+              <p>结构化 JSON Schema</p>
+              <p>用户画像与场景生成</p>
+              <p>批量评测 Runner</p>
+            </article>
+            <article class="arch-card">
+              <h3>执行层</h3>
+              <p>Agent API 调用</p>
+              <p>User Simulator API 调用</p>
+              <p>规则评分器</p>
+            </article>
+            <article class="arch-card accent">
+              <h3>输出层</h3>
+              <p>场景级对话记录</p>
+              <p>总分与失败原因</p>
+              <p>批量汇总结果</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <p class="section-kicker">Evaluation Result</p>
+            <h2>14 场景效果</h2>
+          </div>
+          <div class="result-layout">
+            <div class="panel chart-panel">
+              <div class="panel-head">
+                <h3>场景得分分布</h3>
+                <p>当前批量实验共 14 个用户场景</p>
+              </div>
+              <div id="scoreBars" class="score-bars"></div>
+            </div>
+            <div class="panel issue-panel">
+              <div class="panel-head">
+                <h3>主要失败模式</h3>
+                <p>规则评分中最常见的问题</p>
+              </div>
+              <div id="issueList" class="issue-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <p class="section-kicker">Scenario Table</p>
+            <h2>场景总表</h2>
+          </div>
+          <div class="panel table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scenario</th>
+                  <th>Persona</th>
+                  <th>Score</th>
+                  <th>Agent Turns</th>
+                  <th>Violations</th>
+                </tr>
+              </thead>
+              <tbody id="scenarioTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section dual-section">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>当前发现</h3>
+            </div>
+            <ul id="insightList" class="bullet-list"></ul>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>下一步优化</h3>
+            </div>
+            <ul class="bullet-list">
+              <li>做 10 次 / 100 次重复实验，统计均值与波动。</li>
+              <li>加入更强的约束控制，优先解决超字数问题。</li>
+              <li>针对任务 2 强化主流程覆盖，降低 <code>miss_primary_task</code>。</li>
+              <li>把结果导出成 CSV / 看板，支持答辩现场动态展示。</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
