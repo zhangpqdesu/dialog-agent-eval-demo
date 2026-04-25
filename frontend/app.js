@@ -133,7 +133,7 @@ function renderSummary(summary) {
 
 async function loadSummary() {
   try {
-    const response = await fetch("../outputs/batch_eval_14/summary.json");
+    const response = await fetch("./data/summary.json");
     if (!response.ok) throw new Error("fetch failed");
     return await response.json();
   } catch (error) {

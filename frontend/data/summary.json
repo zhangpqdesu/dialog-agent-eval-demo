@@ -1,0 +1,193 @@
+{
+  "aggregate": {
+    "scenario_count": 14,
+    "average_score": 49.56,
+    "min_score": 0.0,
+    "max_score": 100.0,
+    "failed_scenarios": [
+      "1_cooperative_user",
+      "1_busy_user",
+      "1_skeptical_user",
+      "1_refusing_user",
+      "2_cooperative_user",
+      "2_silent_user",
+      "2_busy_user",
+      "2_skeptical_user",
+      "2_off_topic_user",
+      "2_random_question_user",
+      "2_driving_user"
+    ]
+  },
+  "rows": [
+    {
+      "scenario_id": "1_cooperative_user",
+      "instruction_id": "1",
+      "profile_id": "cooperative_user",
+      "persona": "配合型用户",
+      "overall_score": 75.0,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": [
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "1_silent_user",
+      "instruction_id": "1",
+      "profile_id": "silent_user",
+      "persona": "沉默型用户",
+      "overall_score": 100.0,
+      "agent_turn_count": 3,
+      "user_turn_count": 4,
+      "violations": []
+    },
+    {
+      "scenario_id": "1_busy_user",
+      "instruction_id": "1",
+      "profile_id": "busy_user",
+      "persona": "忙碌型用户",
+      "overall_score": 70.0,
+      "agent_turn_count": 1,
+      "user_turn_count": 2,
+      "violations": [
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "1_skeptical_user",
+      "instruction_id": "1",
+      "profile_id": "skeptical_user",
+      "persona": "质疑型用户",
+      "overall_score": 70.0,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": [
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "1_off_topic_user",
+      "instruction_id": "1",
+      "profile_id": "off_topic_user",
+      "persona": "越界提问用户",
+      "overall_score": 90.0,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": []
+    },
+    {
+      "scenario_id": "1_random_question_user",
+      "instruction_id": "1",
+      "profile_id": "random_question_user",
+      "persona": "乱问问题用户",
+      "overall_score": 100.0,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": []
+    },
+    {
+      "scenario_id": "1_refusing_user",
+      "instruction_id": "1",
+      "profile_id": "refusing_user",
+      "persona": "拒绝执行用户",
+      "overall_score": 0.0,
+      "agent_turn_count": 2,
+      "user_turn_count": 3,
+      "violations": [
+        "miss_primary_task",
+        "miss_required_flow",
+        "exceed_turn_length",
+        "miss_end_call_condition"
+      ]
+    },
+    {
+      "scenario_id": "2_cooperative_user",
+      "instruction_id": "2",
+      "profile_id": "cooperative_user",
+      "persona": "配合型用户",
+      "overall_score": 50.0,
+      "agent_turn_count": 3,
+      "user_turn_count": 4,
+      "violations": [
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_silent_user",
+      "instruction_id": "2",
+      "profile_id": "silent_user",
+      "persona": "沉默型用户",
+      "overall_score": 19.44,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": [
+        "miss_primary_task",
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_busy_user",
+      "instruction_id": "2",
+      "profile_id": "busy_user",
+      "persona": "忙碌型用户",
+      "overall_score": 16.67,
+      "agent_turn_count": 1,
+      "user_turn_count": 2,
+      "violations": [
+        "miss_primary_task",
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_skeptical_user",
+      "instruction_id": "2",
+      "profile_id": "skeptical_user",
+      "persona": "质疑型用户",
+      "overall_score": 50.0,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": [
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_off_topic_user",
+      "instruction_id": "2",
+      "profile_id": "off_topic_user",
+      "persona": "越界提问用户",
+      "overall_score": 16.67,
+      "agent_turn_count": 4,
+      "user_turn_count": 5,
+      "violations": [
+        "miss_primary_task",
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_random_question_user",
+      "instruction_id": "2",
+      "profile_id": "random_question_user",
+      "persona": "乱问问题用户",
+      "overall_score": 19.44,
+      "agent_turn_count": 3,
+      "user_turn_count": 4,
+      "violations": [
+        "miss_primary_task",
+        "exceed_turn_length"
+      ]
+    },
+    {
+      "scenario_id": "2_driving_user",
+      "instruction_id": "2",
+      "profile_id": "driving_user",
+      "persona": "开车中用户",
+      "overall_score": 16.67,
+      "agent_turn_count": 1,
+      "user_turn_count": 2,
+      "violations": [
+        "miss_primary_task",
+        "miss_required_flow"
+      ]
+    }
+  ]
+}
