@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from llm.kimi_client import KimiClient
+from llm.deepseek_client import DeepSeekClient
 
 
 class LLMJudge:
-    def __init__(self, client: KimiClient | None = None) -> None:
-        self.client = client or KimiClient()
+    def __init__(self, client: DeepSeekClient | None = None) -> None:
+        self.client = client or DeepSeekClient()
 
     def judge(
         self,
@@ -28,9 +28,9 @@ class LLMJudge:
             "success_criteria": example["success_criteria"],
             "failure_conditions": example["failure_conditions"],
             "scenario": {
-                "scenario_id": scenario["scenario_id"],
-                "profile_id": scenario["profile_id"],
-                "persona": scenario["persona"],
+                "scenario_id": scenario.get("id") or scenario.get("scenario_id", ""),
+                "profile_id": scenario.get("profile_id", "custom"),
+                "persona": scenario.get("name") or scenario.get("persona", "用户"),
             },
             "conversation": conversation,
             "rule_report": rule_report,

@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from llm.kimi_client import KimiClient
+from llm.deepseek_client import DeepSeekClient
 
 
 class APIAgent:
-    def __init__(self, client: KimiClient | None = None, model: str | None = None) -> None:
-        self.client = client or KimiClient(model=model)
+    def __init__(self, client: DeepSeekClient | None = None, model: str | None = None) -> None:
+        self.client = client or DeepSeekClient(model=model)
 
     def respond(
         self,
@@ -24,9 +24,9 @@ class APIAgent:
         user_prompt = {
             "instruction_core": example["instruction_core"],
             "scenario_meta": {
-                "scenario_id": scenario["scenario_id"],
-                "profile_id": scenario["profile_id"],
-                "persona": scenario["persona"],
+                "scenario_id": scenario.get("id") or scenario.get("scenario_id", ""),
+                "profile_id": scenario.get("profile_id", "custom"),
+                "persona": scenario.get("name") or scenario.get("persona", "用户"),
             },
             "conversation_history": history,
             "output_requirement": {

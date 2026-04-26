@@ -1,187 +1,371 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>复杂外呼任务评测系统 Demo</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">AI Agent Competition Demo</p>
-          <h1>复杂指令下的多轮对话自动评测系统</h1>
-          <p class="hero-text">
-            把任务指令结构化，把用户画像场景化，把执行结果量化。
-            这个页面同时展示系统方案、评测流程，以及 14 个用户场景下的当前实验结果。
-          </p>
-          <div class="hero-badges">
-            <span>Agent: kimi-k2-turbo-preview</span>
-            <span>User Simulator: kimi-k2-turbo-preview</span>
-            <span>Judge: 规则评分</span>
-          </div>
-        </div>
-        <div class="hero-panel">
-          <div class="metric-card">
-            <span class="metric-label">批量场景数</span>
-            <strong id="metricScenarioCount">14</strong>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">平均分</span>
-            <strong id="metricAvgScore">49.56</strong>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">最高分</span>
-            <strong id="metricMaxScore">100</strong>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">最低分</span>
-            <strong id="metricMinScore">0</strong>
-          </div>
-        </div>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>对话 Agent 指令遵循评测系统</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
 
-      <main>
-        <section class="section">
-          <div class="section-head">
-            <p class="section-kicker">How It Works</p>
-            <h2>我是怎么做的</h2>
-          </div>
-          <div class="timeline">
-            <article class="timeline-card">
-              <span class="timeline-index">01</span>
-              <h3>指令结构化</h3>
-              <p>
-                从 Excel 指令中统一抽取
-                <code>role</code>、<code>task</code>、<code>opening_line</code>、<code>call_flow</code>、
-                <code>knowledge_points</code>、<code>constraints</code>。
-              </p>
-            </article>
-            <article class="timeline-card">
-              <span class="timeline-index">02</span>
-              <h3>评测协议生成</h3>
-              <p>
-                自动补出 <code>success_criteria</code>、<code>failure_conditions</code>、
-                <code>user_simulator_profiles</code>，把自然语言任务转成可测协议。
-              </p>
-            </article>
-            <article class="timeline-card">
-              <span class="timeline-index">03</span>
-              <h3>用户模拟器</h3>
-              <p>
-                生成 14 个用户场景，覆盖正常、沉默、忙碌、质疑、越界提问、乱问、拒绝执行、开车中等类型。
-              </p>
-            </article>
-            <article class="timeline-card">
-              <span class="timeline-index">04</span>
-              <h3>自动评测</h3>
-              <p>
-                Agent 和 User Simulator 走 Kimi API，Judge 用规则打分，输出每个场景的对话和评分报告。
-              </p>
-            </article>
-          </div>
-        </section>
+  <!-- WebGL shader background -->
+  <canvas id="shaderCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.15;"></canvas>
 
-        <section class="section grid-section">
-          <div class="section-head">
-            <p class="section-kicker">Architecture</p>
-            <h2>系统结构</h2>
-          </div>
-          <div class="architecture-grid">
-            <article class="arch-card">
-              <h3>输入层</h3>
-              <p>Excel 指令样例</p>
-              <p>任务话术模板</p>
-              <p>流程与约束规则</p>
-            </article>
-            <article class="arch-card">
-              <h3>中间层</h3>
-              <p>结构化 JSON Schema</p>
-              <p>用户画像与场景生成</p>
-              <p>批量评测 Runner</p>
-            </article>
-            <article class="arch-card">
-              <h3>执行层</h3>
-              <p>Agent API 调用</p>
-              <p>User Simulator API 调用</p>
-              <p>规则评分器</p>
-            </article>
-            <article class="arch-card accent">
-              <h3>输出层</h3>
-              <p>场景级对话记录</p>
-              <p>总分与失败原因</p>
-              <p>批量汇总结果</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section">
-          <div class="section-head">
-            <p class="section-kicker">Evaluation Result</p>
-            <h2>14 场景效果</h2>
-          </div>
-          <div class="result-layout">
-            <div class="panel chart-panel">
-              <div class="panel-head">
-                <h3>场景得分分布</h3>
-                <p>当前批量实验共 14 个用户场景</p>
-              </div>
-              <div id="scoreBars" class="score-bars"></div>
-            </div>
-            <div class="panel issue-panel">
-              <div class="panel-head">
-                <h3>主要失败模式</h3>
-                <p>规则评分中最常见的问题</p>
-              </div>
-              <div id="issueList" class="issue-list"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
-          <div class="section-head">
-            <p class="section-kicker">Scenario Table</p>
-            <h2>场景总表</h2>
-          </div>
-          <div class="panel table-panel">
-            <table>
-              <thead>
-                <tr>
-                  <th>Scenario</th>
-                  <th>Persona</th>
-                  <th>Score</th>
-                  <th>Agent Turns</th>
-                  <th>Violations</th>
-                </tr>
-              </thead>
-              <tbody id="scenarioTableBody"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="section dual-section">
-          <div class="panel">
-            <div class="panel-head">
-              <h3>当前发现</h3>
-            </div>
-            <ul id="insightList" class="bullet-list"></ul>
-          </div>
-          <div class="panel">
-            <div class="panel-head">
-              <h3>下一步优化</h3>
-            </div>
-            <ul class="bullet-list">
-              <li>做 10 次 / 100 次重复实验，统计均值与波动。</li>
-              <li>加入更强的约束控制，优先解决超字数问题。</li>
-              <li>针对任务 2 强化主流程覆盖，降低 <code>miss_primary_task</code>。</li>
-              <li>把结果导出成 CSV / 看板，支持答辩现场动态展示。</li>
-            </ul>
-          </div>
-        </section>
-      </main>
+  <!-- ── TOP NAV ── -->
+  <nav class="topnav" style="position:relative;z-index:10;">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-dot"></span>
+        <span class="nav-title">美团 · 外呼 Agent 评测系统</span>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="lab">实验台</button>
+        <button class="nav-tab" data-tab="personas">画像管理</button>
+        <button class="nav-tab" data-tab="results">结果报告</button>
+        <button class="nav-tab" data-tab="insights">结论</button>
+      </div>
+      <div class="nav-status" id="navStatus">
+        <span class="status-dot idle"></span>
+        <span class="status-text">就绪</span>
+      </div>
     </div>
+  </nav>
 
-    <script src="./app.js"></script>
-  </body>
+  <!-- ══════════════════════════════════════════════════
+       TAB 1: 实验台
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-lab" style="position:relative;z-index:1;">
+    <div class="lab-layout">
+
+      <!-- LEFT: Config panel -->
+      <aside class="lab-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-label">选择任务指令</div>
+          <div id="instrList" class="instr-list">
+            <div class="loading-placeholder">加载中...</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">
+            选择用户画像
+            <span class="label-hint">（可多选）</span>
+          </div>
+          <div id="personaCheckList" class="persona-check-list">
+            <div class="loading-placeholder">加载中...</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">评判模式</div>
+          <div class="judge-radio-group">
+            <label class="radio-option">
+              <input type="radio" name="judgeMode" value="rule" />
+              <span class="radio-box"></span>
+              <span>规则评分</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="judgeMode" value="hybrid" checked />
+              <span class="radio-box"></span>
+              <span>规则 + LLM</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="judgeMode" value="api" />
+              <span class="radio-box"></span>
+              <span>纯 LLM</span>
+            </label>
+          </div>
+        </div>
+
+        <button class="run-btn" id="runBtn" onclick="startRun()">
+          <span class="run-btn-icon">▶</span>
+          <span class="run-btn-text">开始实验</span>
+        </button>
+      </aside>
+
+      <!-- RIGHT: Live experiment view -->
+      <div class="lab-main">
+        <!-- empty state -->
+        <div class="lab-empty" id="labEmpty">
+          <div class="empty-icon">🤖</div>
+          <div class="empty-title">选择指令和画像，开始实验</div>
+          <div class="empty-sub">实验运行时，对话将实时展示在这里</div>
+        </div>
+
+        <!-- live run area (hidden initially) -->
+        <div class="run-area" id="runArea" style="display:none;">
+          <!-- persona tabs -->
+          <div class="persona-run-tabs" id="personaRunTabs"></div>
+
+          <!-- conversation + scoring side by side -->
+          <div class="run-body">
+            <!-- chat column -->
+            <div class="chat-col">
+              <div class="chat-header">
+                <span class="chat-header-icon">💬</span>
+                <span id="chatPersonaLabel">对话进行中...</span>
+                <span class="chat-status" id="chatStatus">运行中</span>
+              </div>
+              <div class="chat-messages" id="chatMessages"></div>
+            </div>
+
+            <!-- scoring column -->
+            <div class="score-col">
+              <div class="score-col-header">
+                <span class="score-col-icon">⚖️</span>
+                评分过程
+              </div>
+              <div class="score-items" id="scoreItems"></div>
+              <div class="final-score-reveal" id="finalScoreReveal" style="display:none;">
+                <div class="final-score-label">综合得分</div>
+                <div class="final-score-num" id="finalScoreNum">--</div>
+                <div class="final-score-breakdown" id="finalScoreBreakdown"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 2: 画像管理
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-personas" style="position:relative;z-index:1;">
+    <div class="page-wrap">
+      <div class="page-head-row">
+        <div>
+          <span class="kicker">Persona Management</span>
+          <h2>用户画像管理</h2>
+        </div>
+        <button class="primary-btn" onclick="openPersonaDrawer(null)">
+          + 新建画像
+        </button>
+      </div>
+      <div class="persona-grid" id="personaGrid">
+        <div class="loading-placeholder">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 3: 结果报告
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-results" style="position:relative;z-index:1;">
+    <div class="page-wrap">
+
+      <!-- hero score + metrics -->
+      <div class="report-hero">
+        <div class="hero-ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 140 140">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4f7fff"/>
+                <stop offset="100%" stop-color="#7c5cfc"/>
+              </linearGradient>
+            </defs>
+            <circle cx="70" cy="70" r="58" class="ring-track"/>
+            <circle cx="70" cy="70" r="58" class="ring-fill" id="ringFill"
+              stroke-dasharray="364.4"
+              stroke-dashoffset="364.4"
+              transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="score-center">
+            <span class="score-num" id="heroScore">--</span>
+            <span class="score-sub">平均分</span>
+          </div>
+        </div>
+        <div class="metrics-strip">
+          <div class="metric-card">
+            <div class="metric-icon">🧪</div>
+            <div class="metric-val" id="metricCount">--</div>
+            <div class="metric-lbl">测试场景</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🏆</div>
+            <div class="metric-val" id="metricMax">--</div>
+            <div class="metric-lbl">最高分</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">⚠️</div>
+            <div class="metric-val" id="metricMin">--</div>
+            <div class="metric-lbl">最低分</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🚨</div>
+            <div class="metric-val" id="metricFailed">--</div>
+            <div class="metric-lbl">存在违规</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="chart-title">场景得分分布</h3>
+          <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">违规类型统计</h3>
+          <div class="chart-wrap"><canvas id="violationChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div class="section-head-row" style="margin-top:40px;">
+        <div>
+          <span class="kicker">Scenario Details</span>
+          <h2>场景明细</h2>
+        </div>
+        <div class="filter-row" id="filterRow">
+          <button class="filter-btn active" data-filter="all">全部</button>
+          <button class="filter-btn" data-filter="1">指令1 · 骑手</button>
+          <button class="filter-btn" data-filter="2">指令2 · 商户</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="scenario-table">
+          <thead>
+            <tr>
+              <th>场景 ID</th><th>用户画像</th><th>综合得分</th>
+              <th>规则分</th><th>LLM分</th><th>Agent轮数</th>
+              <th>违规项</th><th>对话</th>
+            </tr>
+          </thead>
+          <tbody id="scenarioTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 4: 结论
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-insights" style="position:relative;z-index:1;">
+    <div class="page-wrap">
+      <div class="page-head-row">
+        <div>
+          <span class="kicker">Key Findings</span>
+          <h2>评测结论</h2>
+        </div>
+      </div>
+
+      <!-- architecture video -->
+      <div class="video-section">
+        <div class="section-label">系统架构演示</div>
+        <div class="video-wrap">
+          <video src="./data/eval-system.mp4" autoplay loop muted playsinline
+            style="width:100%;border-radius:16px;display:block;"></video>
+        </div>
+      </div>
+
+      <!-- arch diagram -->
+      <div class="arch-section">
+        <div class="section-label">模块详解</div>
+        <div class="arch-flow">
+          <div class="arch-node arch-input">
+            <div class="arch-icon">📋</div>
+            <div class="arch-name">Excel 指令</div>
+            <div class="arch-desc">角色 / 流程 / 约束</div>
+          </div>
+          <div class="arch-connector"><div class="connector-line"></div><span class="connector-label">解析</span></div>
+          <div class="arch-node arch-agent">
+            <div class="arch-icon">🤖</div>
+            <div class="arch-name">Dialog Agent</div>
+            <div class="arch-desc">执行外呼任务</div>
+            <div class="arch-model">DeepSeek</div>
+          </div>
+          <div class="arch-connector arch-double"><div class="connector-line"></div><span class="connector-label">多轮对话</span></div>
+          <div class="arch-node arch-user">
+            <div class="arch-icon">👤</div>
+            <div class="arch-name">User Simulator</div>
+            <div class="arch-desc">动态用户画像</div>
+            <div class="arch-model">DeepSeek</div>
+          </div>
+          <div class="arch-connector"><div class="connector-line"></div><span class="connector-label">对话记录</span></div>
+          <div class="arch-node arch-eval">
+            <div class="arch-icon">⚖️</div>
+            <div class="arch-name">Evaluator</div>
+            <div class="arch-desc">规则 + LLM 双层</div>
+            <div class="arch-model">规则 + DeepSeek</div>
+          </div>
+          <div class="arch-connector"><div class="connector-line"></div><span class="connector-label">报告</span></div>
+          <div class="arch-node arch-output">
+            <div class="arch-icon">📊</div>
+            <div class="arch-name">评测报告</div>
+            <div class="arch-desc">可解释 · 可量化</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- key insights -->
+      <div class="insights-section">
+        <div class="section-label">关键发现</div>
+        <div class="insights-grid" id="insightsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       PERSONA DRAWER (slide-in form)
+  ══════════════════════════════════════════════════ -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closePersonaDrawer()"></div>
+  <div class="drawer" id="personaDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title" id="drawerTitle">新建画像</span>
+      <button class="drawer-close" onclick="closePersonaDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+      <input type="hidden" id="editPersonaId" />
+      <div class="form-field">
+        <label class="form-label">画像名称 <span class="req">*</span></label>
+        <input class="form-input" id="pName" placeholder="例：急躁型用户" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">关联指令</label>
+        <select class="form-input" id="pInstrId"></select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">用户目标</label>
+        <textarea class="form-input form-textarea" id="pGoal" placeholder="例：尽快结束通话，不想填写问卷"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">对话风格 <span class="form-hint">（回车或逗号分隔）</span></label>
+        <div class="tag-input-wrap" id="tagInputWrap">
+          <div class="tag-input-tags" id="tagInputTags"></div>
+          <input class="tag-input-box" id="tagInputBox" placeholder="输入后按回车" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">开场白</label>
+        <input class="form-input" id="pUtterance" placeholder="例：你好，请说。" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">最大轮数</label>
+        <input class="form-input" id="pMaxTurns" type="number" min="1" max="20" value="6" />
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="secondary-btn" onclick="closePersonaDrawer()">取消</button>
+      <button class="primary-btn" onclick="savePersona()">保存</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       CONVERSATION MODAL
+  ══════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="modalTitle" class="modal-title">对话回放</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+  <script src="./shader.js"></script>
+</body>
 </html>

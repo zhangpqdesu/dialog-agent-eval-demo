@@ -72,8 +72,8 @@ class AutoScorer:
 
         return {
             "instruction_id": instruction_id,
-            "scenario_id": scenario["scenario_id"],
-            "profile_id": scenario["profile_id"],
+            "scenario_id": scenario.get("id") or scenario.get("scenario_id", ""),
+            "profile_id": scenario.get("profile_id", "custom"),
             "overall_score": overall_score,
             "category_scores": category_scores,
             "success_results": success_results,

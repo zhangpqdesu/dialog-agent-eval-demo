@@ -1,0 +1,197 @@
+{
+  "personas": [
+    {
+      "id": "1_cooperative_user",
+      "name": "配合型用户",
+      "instruction_id": "1",
+      "goal": "愿意听完说明，并就关键点做少量确认。",
+      "style": [
+        "简短回应",
+        "接受引导",
+        "会确认核心信息"
+      ],
+      "initial_utterance": "是我，你说。",
+      "max_turns": 4,
+      "profile_id": "cooperative_user"
+    },
+    {
+      "id": "1_silent_user",
+      "name": "沉默型用户",
+      "instruction_id": "1",
+      "goal": "只做极简回应，测试模型能否主动推进流程而不过度重复。",
+      "style": [
+        "少字回答",
+        "被动",
+        "不主动提问"
+      ],
+      "initial_utterance": "嗯。",
+      "max_turns": 4,
+      "profile_id": "silent_user"
+    },
+    {
+      "id": "1_busy_user",
+      "name": "忙碌型用户",
+      "instruction_id": "1",
+      "goal": "尽快结束通话，观察模型是否能压缩表达并保留重点。",
+      "style": [
+        "打断",
+        "催促",
+        "低耐心"
+      ],
+      "initial_utterance": "我现在忙，你快点说。",
+      "max_turns": 4,
+      "profile_id": "busy_user"
+    },
+    {
+      "id": "1_skeptical_user",
+      "name": "质疑型用户",
+      "instruction_id": "1",
+      "goal": "追问规则依据，测试模型是否按知识点稳定回答。",
+      "style": [
+        "追问细节",
+        "怀疑规则",
+        "要求解释原因"
+      ],
+      "initial_utterance": "什么意思？你先说清楚。",
+      "max_turns": 4,
+      "profile_id": "skeptical_user"
+    },
+    {
+      "id": "1_off_topic_user",
+      "name": "越界提问用户",
+      "instruction_id": "1",
+      "goal": "提出超出职责范围的问题，测试兜底回复。",
+      "style": [
+        "跳出主题",
+        "询问非脚本内容"
+      ],
+      "initial_utterance": "先别说这个，我问你别的。",
+      "max_turns": 4,
+      "profile_id": "off_topic_user"
+    },
+    {
+      "id": "1_random_question_user",
+      "name": "乱问问题用户",
+      "instruction_id": "1",
+      "goal": "在流程中穿插无关或半相关问题，测试模型的抗干扰能力。",
+      "style": [
+        "跳跃提问",
+        "想到什么问什么",
+        "偶尔切回正题"
+      ],
+      "initial_utterance": "你先说，不过我想到什么就问什么。",
+      "max_turns": 4,
+      "profile_id": "random_question_user"
+    },
+    {
+      "id": "1_refusing_user",
+      "name": "拒绝执行用户",
+      "instruction_id": "1",
+      "goal": "明确表示不愿执行任务，测试挽留与结束策略。",
+      "style": [
+        "消极",
+        "拒绝",
+        "重复表达做不到"
+      ],
+      "initial_utterance": "我今天不想跑，别劝了。",
+      "max_turns": 4,
+      "profile_id": "refusing_user"
+    },
+    {
+      "id": "2_cooperative_user",
+      "name": "配合型用户",
+      "instruction_id": "2",
+      "goal": "愿意听完说明，并就关键点做少量确认。",
+      "style": [
+        "简短回应",
+        "接受引导",
+        "会确认核心信息"
+      ],
+      "initial_utterance": "我是负责人，你说。",
+      "max_turns": 4,
+      "profile_id": "cooperative_user"
+    },
+    {
+      "id": "2_silent_user",
+      "name": "沉默型用户",
+      "instruction_id": "2",
+      "goal": "只做极简回应，测试模型能否主动推进流程而不过度重复。",
+      "style": [
+        "少字回答",
+        "被动",
+        "不主动提问"
+      ],
+      "initial_utterance": "嗯，你说。",
+      "max_turns": 4,
+      "profile_id": "silent_user"
+    },
+    {
+      "id": "2_busy_user",
+      "name": "忙碌型用户",
+      "instruction_id": "2",
+      "goal": "尽快结束通话，观察模型是否能压缩表达并保留重点。",
+      "style": [
+        "打断",
+        "催促",
+        "低耐心"
+      ],
+      "initial_utterance": "我这边正忙，你简短说。",
+      "max_turns": 4,
+      "profile_id": "busy_user"
+    },
+    {
+      "id": "2_skeptical_user",
+      "name": "质疑型用户",
+      "instruction_id": "2",
+      "goal": "追问规则依据，测试模型是否按知识点稳定回答。",
+      "style": [
+        "追问细节",
+        "怀疑规则",
+        "要求解释原因"
+      ],
+      "initial_utterance": "具体改了什么？你说清楚。",
+      "max_turns": 4,
+      "profile_id": "skeptical_user"
+    },
+    {
+      "id": "2_off_topic_user",
+      "name": "越界提问用户",
+      "instruction_id": "2",
+      "goal": "提出超出职责范围的问题，测试兜底回复。",
+      "style": [
+        "跳出主题",
+        "询问非脚本内容"
+      ],
+      "initial_utterance": "我先问个别的事。",
+      "max_turns": 4,
+      "profile_id": "off_topic_user"
+    },
+    {
+      "id": "2_random_question_user",
+      "name": "乱问问题用户",
+      "instruction_id": "2",
+      "goal": "在流程中穿插无关或半相关问题，测试模型的抗干扰能力。",
+      "style": [
+        "跳跃提问",
+        "想到什么问什么",
+        "偶尔切回正题"
+      ],
+      "initial_utterance": "你先说，我可能会随时打断问。",
+      "max_turns": 4,
+      "profile_id": "random_question_user"
+    },
+    {
+      "id": "2_driving_user",
+      "name": "开车中用户",
+      "instruction_id": "2",
+      "goal": "快速告知自己在开车，检查模型是否礼貌结束。",
+      "style": [
+        "立即打断",
+        "强调不方便接听"
+      ],
+      "initial_utterance": "我在开车，晚点再说。",
+      "max_turns": 3,
+      "profile_id": "driving_user"
+    }
+  ]
+}
