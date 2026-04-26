@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 from agent.api_agent import APIAgent
 from evaluator.auto_scorer import AutoScorer
 from evaluator.llm_judge import LLMJudge
-from llm.kimi_client import load_dotenv
+from llm.deepseek_client import load_dotenv
 from simulator.user_simulator import UserSimulator
 from simulator.llm_user_simulator import LLMUserSimulator
 
@@ -115,8 +115,8 @@ def run_one_evaluation(
     load_dotenv(ROOT / ".env")
     eval_examples = load_eval_examples()
     example_index = build_example_index(eval_examples)
-    resolved_agent_model = agent_model or os.environ.get("KIMI_AGENT_MODEL") or "kimi-k2-turbo-preview"
-    resolved_user_model = user_model or os.environ.get("KIMI_USER_MODEL") or "kimi-k2-turbo-preview"
+    resolved_agent_model = agent_model or os.environ.get("DEEPSEEK_AGENT_MODEL") or "deepseek-chat"
+    resolved_user_model = user_model or os.environ.get("DEEPSEEK_USER_MODEL") or "deepseek-chat"
     simulator = UserSimulator.from_file(scenario_path)
     scorer = AutoScorer(eval_examples)
     rule_agent = RuleBasedAgent(eval_examples)
@@ -197,8 +197,8 @@ def demo() -> None:
         agent_mode="api",
         user_mode="api",
         judge_mode="rule",
-        agent_model="kimi-k2-turbo-preview",
-        user_model="kimi-k2-turbo-preview",
+        agent_model="deepseek-chat",
+        user_model="deepseek-chat",
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     print(f"saved_to={output_path}")

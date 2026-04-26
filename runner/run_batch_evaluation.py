@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from llm.kimi_client import load_dotenv
+from llm.deepseek_client import load_dotenv
 from runner.run_evaluation import run_one_evaluation
 
 
