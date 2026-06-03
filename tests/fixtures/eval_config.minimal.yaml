@@ -1,0 +1,16 @@
+run_name: test_run
+instructions:
+  source: data/processed/dialog_instruction_eval_examples.json
+personas:
+  source: data/personas.json
+agents_under_test:
+  - name: kimi-k2
+    type: builtin_llm
+    model: kimi-k2-turbo-preview
+scoring:
+  l3_samples: 3
+  judge_model: kimi-k2-turbo-preview
+  confidence_threshold: 0.6
+output:
+  dir: outputs/{run_name}
+  formats: [json]

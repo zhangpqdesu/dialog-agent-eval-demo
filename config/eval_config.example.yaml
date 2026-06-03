@@ -1,0 +1,29 @@
+run_name: rider_ops_kimi_vs_deepseek_v1
+seed: 42
+max_concurrency: 2
+instructions:
+  source: data/processed/dialog_instruction_eval_examples.json
+  filter_ids: ["1", "2"]
+personas:
+  source: data/personas.json
+  include_red_team: true
+agents_under_test:
+  - name: kimi-k2
+    type: builtin_llm
+    model: kimi-k2-turbo-preview
+  - name: deepseek-chat
+    type: builtin_llm
+    model: deepseek-chat
+  - name: my-prod-agent
+    type: http
+    endpoint: http://localhost:9000/respond
+scoring:
+  l3_samples: 3
+  judge_model: kimi-k2-turbo-preview
+  confidence_threshold: 0.6
+  l1_penalty_per_violation: 10.0
+  l2_weight: 40.0
+  l3_weight: 60.0
+output:
+  dir: outputs/{run_name}
+  formats: [json, html]
