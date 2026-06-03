@@ -78,3 +78,19 @@ def load_eval_config(path: str | Path) -> EvalConfig:
         return EvalConfig(**raw)
     except ValidationError as exc:
         raise ValueError(f"Invalid eval config {path}: {exc}") from exc
+
+
+def loads_eval_config(yaml_text: str) -> EvalConfig:
+    """Parse an inline YAML config string.
+
+    Used by the dashboard's ``POST /runs`` endpoint so callers don't have
+    to point at server-side paths (which would otherwise widen the
+    attack surface to arbitrary file reads).
+    """
+    raw = yaml.safe_load(yaml_text)
+    if not isinstance(raw, dict):
+        raise ValueError(f"Config root must be a mapping, got {type(raw).__name__}")
+    try:
+        return EvalConfig(**raw)
+    except ValidationError as exc:
+        raise ValueError(f"Invalid eval config: {exc}") from exc

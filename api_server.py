@@ -8,6 +8,8 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
+import time
+import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -24,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from config import loads_eval_config
 from llm.deepseek_client import load_dotenv
 from store.persona_store import PersonaStore
 
@@ -43,6 +46,11 @@ _executor = ThreadPoolExecutor(max_workers=4)
 # 运行中和已完成的实验结果
 _runs: dict[str, dict[str, Any]] = {}
 _run_queues: dict[str, asyncio.Queue] = {}
+
+# Layered runs (new /runs family). Keyed by server-generated run_id.
+# Each value: {state, run_name, started_at, finished_at, error,
+#              output_dir, summary, aggregate}
+_layered_runs: dict[str, dict[str, Any]] = {}
 
 
 # ── Pydantic Models ──
@@ -327,6 +335,141 @@ async def stream_run(run_id: str):
             yield item
 
     return EventSourceResponse(generator())
+
+
+# ── /runs API (layered runner) ──
+
+class RunSubmitRequest(BaseModel):
+    """Inline YAML config submission for the layered runner.
+
+    We accept the config body as text rather than a server-side path so
+    callers can't trick the server into reading arbitrary files. The
+    ``run_name`` field is optional; when omitted we use whatever the
+    YAML already declares.
+    """
+    yaml_config: str
+    scenario: str | None = None
+
+
+def _execute_layered_run(run_id: str, yaml_text: str, scenario: str | None) -> None:
+    """Background worker that drives ``runner.cli.run`` for one submission."""
+    # Local import keeps the FastAPI module importable even if the runner
+    # has heavy/optional dependencies.
+    from runner.cli import run as cli_run
+
+    record = _layered_runs[run_id]
+    try:
+        cfg = loads_eval_config(yaml_text)
+        # Force a unique run_name so concurrent submissions don't share an
+        # output directory if a YAML hard-codes the same value.
+        original_name = cfg.run_name
+        cfg.run_name = f"{original_name}__{run_id}"
+        record["run_name"] = cfg.run_name
+        record["state"] = "running"
+        record["output_dir"] = str(cfg.resolved_output_dir())
+
+        summary = cli_run(cfg, scenario_filter=scenario)
+        record["summary"] = summary
+
+        # Aggregate is written by the runner itself — load it back so the
+        # /report endpoint can serve it without re-running aggregation.
+        agg_path = cfg.resolved_output_dir() / "aggregate.json"
+        if agg_path.exists():
+            record["aggregate"] = json.loads(agg_path.read_text(encoding="utf-8"))
+
+        record["state"] = "succeeded"
+    except Exception as exc:  # noqa: BLE001 — surface the failure to the API caller
+        record["state"] = "failed"
+        record["error"] = f"{type(exc).__name__}: {exc}"
+        # Stash a short traceback excerpt for debuggability without
+        # leaking server internals beyond the existing API surface.
+        record["traceback"] = traceback.format_exc(limit=5)
+    finally:
+        record["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _summarise_layered_run(run_id: str, record: dict[str, Any]) -> dict[str, Any]:
+    """Project an internal record to the public listing/detail shape."""
+    summary = record.get("summary") or {}
+    return {
+        "run_id": run_id,
+        "state": record.get("state"),
+        "run_name": record.get("run_name"),
+        "started_at": record.get("started_at"),
+        "finished_at": record.get("finished_at"),
+        "error": record.get("error"),
+        "output_dir": record.get("output_dir"),
+        "result_count": len(summary.get("results") or []),
+        "judge_available": summary.get("judge_available"),
+    }
+
+
+@app.post("/runs", status_code=202)
+def submit_layered_run(body: RunSubmitRequest):
+    """Kick off a layered evaluation run from inline YAML config."""
+    # Validate early so the API caller gets a 400 instead of a background
+    # failure recorded on a run id they never see.
+    try:
+        loads_eval_config(body.yaml_config)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"invalid yaml_config: {exc}") from exc
+
+    run_id = uuid.uuid4().hex[:12]
+    _layered_runs[run_id] = {
+        "state": "queued",
+        "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "finished_at": None,
+        "error": None,
+        "run_name": None,
+        "output_dir": None,
+        "summary": None,
+        "aggregate": None,
+    }
+    _executor.submit(_execute_layered_run, run_id, body.yaml_config, body.scenario)
+    return {"run_id": run_id, "state": "queued"}
+
+
+@app.get("/runs")
+def list_layered_runs():
+    return {
+        "runs": [
+            _summarise_layered_run(rid, rec)
+            for rid, rec in sorted(_layered_runs.items(), key=lambda kv: kv[1].get("started_at") or "")
+        ],
+    }
+
+
+@app.get("/runs/{run_id}")
+def get_layered_run(run_id: str):
+    rec = _layered_runs.get(run_id)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="run not found")
+    out = _summarise_layered_run(run_id, rec)
+    # When the run is done, surface the summary inline so the UI can show
+    # the per-scenario rows without a second round-trip.
+    if rec.get("summary"):
+        out["summary"] = rec["summary"]
+    return out
+
+
+@app.get("/runs/{run_id}/report")
+def get_layered_run_report(run_id: str):
+    rec = _layered_runs.get(run_id)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="run not found")
+    if rec.get("state") != "succeeded":
+        # Tell the caller why the aggregate isn't available — much more
+        # useful than a generic 404 for a run that legitimately exists.
+        raise HTTPException(
+            status_code=409,
+            detail={"state": rec.get("state"), "error": rec.get("error")},
+        )
+    return {
+        "run_id": run_id,
+        "run_name": rec.get("run_name"),
+        "aggregate": rec.get("aggregate"),
+        "summary": rec.get("summary"),
+    }
 
 
 # ── 前端静态文件 ──

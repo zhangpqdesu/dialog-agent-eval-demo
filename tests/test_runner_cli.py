@@ -66,12 +66,23 @@ def test_runner_end_to_end_offline(offline_setup):
     cfg_path, out_dir = offline_setup
     cfg = load_eval_config(cfg_path)
     summary = run(cfg)
-    assert summary["result_count" if False else "run_name"] == "smoke_test"
+    assert summary["run_name"] == "smoke_test"
+    # Reproducibility metadata is now persisted with every run.
+    assert summary["seed"] == cfg.seed
+    assert summary["judge_provider"] in {"kimi", "deepseek"}
+    # No LLM credentials in CI ⇒ judge unavailable ⇒ L3 must be flagged as skipped.
+    assert summary["judge_available"] is False
     assert len(summary["results"]) == 1
     r = summary["results"][0]
     assert r["agent_name"] == "replayed"
     assert r["scenario_id"] == "1_cooperative_user"
     assert isinstance(r["overall_score"], (int, float))
+    # When the judge is missing, every result must self-flag for review with
+    # a capped confidence — otherwise downstream dashboards would treat
+    # "no semantic check" as "passed with high confidence".
+    assert r["needs_human_review"] is True
+    assert r["l3_skipped"] is True
+    assert r["confidence"] <= 0.5
 
     files = sorted(p.name for p in out_dir.iterdir())
     assert "summary.json" in files
@@ -80,4 +91,15 @@ def test_runner_end_to_end_offline(offline_setup):
     detail = json.loads((out_dir / "replayed__1_cooperative_user.json").read_text(encoding="utf-8"))
     assert detail["agent_name"] == "replayed"
     assert detail["conversation"][0]["role"] == "user"
+    # Both report shapes must be present: legacy `rule_report` (consumed by
+    # api_server.py and batch runners) and the new `layered_report`.
     assert "rule_report" in detail["report"]
+    layered = detail["report"]["layered_report"]
+    assert layered is not None
+    assert "overall_score" in layered
+    assert "findings" in layered
+    assert layered["meta"]["l3_skipped"] is True
+    assert layered["needs_human_review"] is True
+    # L3_mean should be `null` (not 0.0) when L3 was skipped, so callers
+    # can distinguish "judged poorly" from "never judged".
+    assert layered["layer_scores"]["L3_mean"] is None

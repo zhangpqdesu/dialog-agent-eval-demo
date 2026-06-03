@@ -5,15 +5,18 @@ Entry point::
     python -m runner.cli --config config/eval_config.example.yaml
     python -m runner.cli --config <path> --scenario 1_cooperative_user
 
-Drives the W1 pipeline end-to-end:
+Drives the W1+W2 pipeline end-to-end:
   config -> instructions + personas -> for each (agent, instruction, persona):
-    spin up adapter, simulate conversation, score with the existing
-    AutoScorer (layered scoring is W2), write JSON report.
+    spin up adapter, simulate conversation, score with BOTH the legacy
+    ``AutoScorer`` (kept for back-compat consumers — emitted as
+    ``rule_report``) and the new layered scorer (emitted as
+    ``layered_report``), write JSON report.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 import time
 from pathlib import Path
@@ -26,8 +29,12 @@ if str(ROOT) not in sys.path:
 from agent.adapters import AgentAdapter, make_adapter
 from agent.adapters.offline_log import OfflineLogAdapter
 from config import EvalConfig, load_eval_config
+from evaluator.aggregator import aggregate
 from evaluator.auto_scorer import AutoScorer
+from evaluator.judge_factory import make_judge
+from evaluator.scoring.layered_scorer import LayeredScorer
 from llm.deepseek_client import load_dotenv
+from report.static_html import render as render_html
 from simulator.llm_user_simulator import LLMUserSimulator
 from simulator.user_simulator import UserSimulator
 
@@ -143,21 +150,35 @@ def _build_adapter(cfg_entry, **kw) -> AgentAdapter:
 
 def run(cfg: EvalConfig, scenario_filter: str | None = None) -> dict[str, Any]:
     load_dotenv(ROOT / ".env")
+    # Reproducibility hook — recorded in summary.json so reruns can match seeds.
+    random.seed(cfg.seed)
     instructions = _load_instructions(cfg)
     example_index = {ex["instruction_id"]: ex for ex in instructions["examples"]}
     personas = _load_personas(cfg)
     scenarios = _load_scenarios()
     state_scenarios = {s["scenario_id"]: s for s in scenarios.get("scenarios", [])}
-    scorer = AutoScorer(instructions)
+
+    # Legacy regex/keyword scorer — still consumed by api_server.py and the
+    # batch runners, so we keep emitting its output verbatim as `rule_report`.
+    legacy_scorer = AutoScorer(instructions)
+    # New layered scorer. Judge is shared by L2 (when it wants help) and L3.
+    judge = make_judge(cfg.scoring, dotenv_path=ROOT / ".env")
+    layered = LayeredScorer(cfg.scoring, l2_llm=judge, l3_llm=judge)
 
     out_dir = cfg.resolved_output_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary = {
         "run_name": cfg.run_name,
+        "seed": cfg.seed,
+        "judge_provider": cfg.scoring.judge_provider,
+        "judge_available": judge is not None,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "results": [],
     }
+    # Keep detail dicts in memory so we can hand them to the aggregator /
+    # HTML renderer without re-reading the JSON we just wrote.
+    details: list[dict[str, Any]] = []
 
     for agent_cfg in cfg.agents_under_test:
         adapter = _build_adapter(agent_cfg)
@@ -183,7 +204,8 @@ def run(cfg: EvalConfig, scenario_filter: str | None = None) -> dict[str, Any]:
                 print(f"[error] {agent_cfg.name}/{scenario['scenario_id']}: {exc}", file=sys.stderr)
                 continue
 
-            report = scorer.score_conversation(instruction_id, scenario, conversation)
+            rule_report = legacy_scorer.score_conversation(instruction_id, scenario, conversation)
+            layered_result = layered.score(example, scenario, conversation).to_dict()
             output = {
                 "run_name": cfg.run_name,
                 "agent_name": agent_cfg.name,
@@ -196,8 +218,9 @@ def run(cfg: EvalConfig, scenario_filter: str | None = None) -> dict[str, Any]:
                     "persona": scenario["persona"],
                 },
                 "conversation": conversation,
-                "report": {"rule_report": report, "layered_report": None},
+                "report": {"rule_report": rule_report, "layered_report": layered_result},
             }
+            details.append(output)
             fname = f"{agent_cfg.name}__{scenario['scenario_id']}.json"
             (out_dir / fname).write_text(
                 json.dumps(output, ensure_ascii=False, indent=2) + "\n",
@@ -207,7 +230,16 @@ def run(cfg: EvalConfig, scenario_filter: str | None = None) -> dict[str, Any]:
                 "agent_name": agent_cfg.name,
                 "scenario_id": scenario["scenario_id"],
                 "instruction_id": instruction_id,
-                "overall_score": report["overall_score"],
+                "profile_id": scenario["profile_id"],
+                # `overall_score` is the headline number consumers expect;
+                # layered's [0,100] score replaces the legacy rule_report total
+                # for ranking/aggregation purposes.
+                "overall_score": layered_result["overall_score"],
+                "rule_overall_score": rule_report["overall_score"],
+                "confidence": layered_result["confidence"],
+                "needs_human_review": layered_result["needs_human_review"],
+                "inconsistency_flags": layered_result["inconsistency_flags"],
+                "l3_skipped": layered_result["meta"].get("l3_skipped", False),
                 "file": fname,
             })
 
@@ -216,6 +248,22 @@ def run(cfg: EvalConfig, scenario_filter: str | None = None) -> dict[str, Any]:
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+    # Always write aggregate.json — it's tiny and the dashboard reads it
+    # directly without needing to re-aggregate per-request.
+    aggregate_dict = aggregate(details)
+    (out_dir / "aggregate.json").write_text(
+        json.dumps(aggregate_dict, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    if "html" in (cfg.output.formats or []):
+        # Single-file HTML — easy to ship as a CI artefact or e-mail.
+        (out_dir / "report.html").write_text(
+            render_html(summary, details, aggregate_dict),
+            encoding="utf-8",
+        )
+
     return summary
 
 
